@@ -5,6 +5,8 @@
 
 ![游戏截图](docs/screenshot.png)
 
+**在线试玩：<https://thinheader.github.io/classic-pool-minigame/>**（浏览器直接打开，鼠标模拟触屏，好友联机连的是小游戏同一套 wss 房间服务）
+
 ## 特性
 
 - **纯 Canvas 2D 渲染**，固定 1500×825 设计分辨率，等比缩放 + letterbox 适配任意手机横屏
@@ -36,6 +38,8 @@
 ├── web-preview/                # 浏览器预览层（wx API 模拟）
 ├── serve.js                    # 预览服务器
 ├── verify-preview.js           # 渲染/操作端到端验收
+├── build-pages.js              # 拼装 GitHub Pages 静态站点到 docs/
+├── .github/workflows/pages.yml # Actions 构建并发布 Pages
 └── test-*.js                   # 冒烟 / 自由球 / AI / 昵称测试
 ```
 
@@ -64,6 +68,22 @@ cd pool-server && npm install && node index.js    # ws://127.0.0.1:3010/pool
 ```
 
 预览层会自动把 `wss://` 地址改写成 `ws://本机:3010`，本地联机不用改代码。开两个标签页，都用「好友对战」，一个建房一个输码加入。
+
+## 在线版本（GitHub Pages）
+
+线上站点由 Actions 现场拼装，**不把 13MB 素材再提交一份到仓库**：
+
+```bash
+node build-pages.js    # 本地预览产物：docs/ 下是完整的静态站点
+```
+
+`build-pages.js` 把 `web-preview/` 的页面与预览层、`src/` 源码、`pkgAssets/` 素材、以及扫描出来的模块清单（`preview/manifest.json`）摊平到同一个目录，正好适配 `<user>.github.io/<repo>/` 这种子路径部署：
+
+- `index.html` 用相对路径引预览层
+- `boot.js` 从自己的 `src` 反推站点根，模块 id 仍是 `/src/x.js`，请求时再加前缀
+- 线上不做联机地址改写，直接连 `wss://wandou.dongpouu.top/pool`（和小游戏同一套房间服务）；只有 `localhost` 才转 `ws://本机:3010/pool`
+
+推送到 `main` 后 `.github/workflows/pages.yml` 会自动构建并发布。素材体积是这里的关键：背景图统一压成调色板 PNG（3.6MB → 0.86MB），8.7MB 的背景音乐延迟到用户首次操作后才加载，首屏素材降到约 1.7MB。
 
 ## 测试
 
