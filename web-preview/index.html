@@ -89,8 +89,9 @@
     <div id="bootmsg">正在加载游戏模块…</div>
   </div>
 
-  <script src="/preview/wx-shim.js"></script>
-  <script src="/preview/boot.js"></script>
+  <!-- 相对路径：本地跑在根目录，线上挂在子路径（如 /8ball/）都能用 -->
+  <script src="./wx-shim.js"></script>
+  <script src="./boot.js"></script>
   <script>
     // 角落提示：短暂显示后自动淡出，避免长期挡画面
     (function () {

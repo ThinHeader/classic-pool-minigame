@@ -73,9 +73,12 @@ function sendFile(res, filePath, req) {
 
         const ext = path.extname(filePath).toLowerCase();
         const type = MIME[ext] || 'application/octet-stream';
+        // 素材体积大（音乐 8.7MB + 两张背景图），跨境链路上必须让浏览器缓存住，
+        // 否则每次刷新都要重下十几 MB。页面和代码保持 no-cache，改完刷新就生效。
+        const noCache = ext === '.html' || ext === '.json' || ext === '.js';
         const headers = {
             'Content-Type': type,
-            'Cache-Control': 'no-store',
+            'Cache-Control': noCache ? 'no-cache' : 'public, max-age=604800',
             'Accept-Ranges': 'bytes'
         };
 
@@ -122,7 +125,7 @@ const server = http.createServer((req, res) => {
     if (pathname === '/preview/manifest.json') {
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'no-store'
+            'Cache-Control': 'no-cache'
         });
         res.end(JSON.stringify(buildManifest()));
         return;
@@ -137,6 +140,19 @@ const server = http.createServer((req, res) => {
             return;
         }
         sendFile(res, filePath, req);
+        return;
+    }
+
+    // 预览页自己的同级文件（index.html 用相对路径引用 wx-shim.js / boot.js，
+    // 所以这里会收到 /wx-shim.js 这类不带 /preview/ 前缀的请求）
+    const previewPath = path.join(PREVIEW_DIR, pathname);
+    if (!previewPath.startsWith(PREVIEW_DIR)) {
+        res.writeHead(403);
+        res.end('403');
+        return;
+    }
+    if (fs.existsSync(previewPath) && fs.statSync(previewPath).isFile()) {
+        sendFile(res, previewPath, req);
         return;
     }
 

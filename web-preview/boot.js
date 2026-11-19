@@ -15,6 +15,24 @@
     var barEl = document.getElementById('bootbar');
     var msgEl = document.getElementById('bootmsg');
 
+    // 站点根路径：本地是 '/'，线上可能挂在子路径（如 Caddy handle_path 后面的 '/8ball/'）。
+    // 从本脚本自己的 src 推出来，避免写死，两种部署都不用改代码。
+    var BASE = '/';
+    (function () {
+        var self = document.currentScript;
+        if (!self || !self.src) return;
+        try {
+            var p = new URL(self.src).pathname;
+            var at = p.lastIndexOf('boot.js');
+            if (at >= 0) BASE = p.slice(0, at);
+        } catch (e) { }
+    })();
+
+    // 模块 id 仍是 '/src/x.js' 这类绝对形式（require 解析用），只在真正发请求时加前缀
+    function assetUrl(id) {
+        return BASE + String(id).replace(/^\/+/, '');
+    }
+
     var sources = new Map();   // id -> 源码
     var modules = new Map();   // id -> { exports }
 
@@ -83,7 +101,7 @@
     (async function boot() {
         try {
             setProgress(0, 1, '正在获取模块清单…');
-            var manifest = await fetch('/preview/manifest.json', { cache: 'no-store' }).then(function (r) {
+            var manifest = await fetch(BASE + 'preview/manifest.json', { cache: 'no-store' }).then(function (r) {
                 return r.json();
             });
 
@@ -93,7 +111,7 @@
 
             // 并发预取，全部到位后才能同步 require
             await Promise.all(ids.map(function (id) {
-                return fetchText(id).then(function (text) {
+                return fetchText(assetUrl(id)).then(function (text) {
                     sources.set(id, text);
                     done++;
                     setProgress(done, total, '正在加载游戏模块 ' + done + '/' + total + '…');

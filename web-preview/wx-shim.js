@@ -66,7 +66,13 @@
     function InnerAudioContext() {
         var self = this;
         var el = new Audio();
-        el.preload = 'auto';
+        // 背景音乐有 8.7MB，是首屏体积的大头。线上素材是从服务器拉的，
+        // preload='auto' 会和启动图片抢带宽、把首屏拖到几分钟。
+        // 先不预取，等画面出来后再让它在后台慢慢缓冲。
+        el.preload = 'none';
+        setTimeout(function () {
+            if (!self._destroyed && el.preload === 'none') el.preload = 'auto';
+        }, 12000);
 
         this._el = el;
         this._volume = 1;
@@ -235,11 +241,15 @@
     // ---------- WebSocket ----------
     function connectSocket(options) {
         var url = options && options.url;
-        // 本地预览：把线上 wss 地址自动转到本机房间服务
-        if (/^wss?:\/\//i.test(url) && /wandou\.dongpouu\.top/i.test(url)) {
-            var proto = location.protocol === 'https:' ? 'wss' : 'ws';
-            url = proto + '://' + location.hostname + ':3010/pool';
-            console.log('[wx-shim] 联机地址已重写为本地服务：' + url);
+        // 本机预览时把线上地址转到本机房间服务；线上（GitHub Pages 等）不做改写，
+        // 直接连小游戏共用的 wss://wandou.dongpouu.top/pool
+        if (/^wss?:\/\//i.test(url) && /wandou\.dongpouu\.top|8ball\.dongpouu\.top/i.test(url)) {
+            var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname);
+            if (isLocal) {
+                var proto = location.protocol === 'https:' ? 'wss' : 'ws';
+                url = proto + '://' + location.hostname + ':3010/pool';
+                console.log('[wx-shim] 联机地址已重写为本地服务：' + url);
+            }
         }
 
         var socket = {

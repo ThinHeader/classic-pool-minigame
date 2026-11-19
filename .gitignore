@@ -53,3 +53,6 @@ pool-src/
 /wait-scan.js
 /assets-avatar-8ball.png
 /开源小游戏推荐榜单.html
+
+# Pages 构建产物（由 build-pages.js 现场生成，不入库）
+/docs/
