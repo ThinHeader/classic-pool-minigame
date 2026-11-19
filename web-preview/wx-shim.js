@@ -56,6 +56,8 @@
         var list = pendingAudio.slice();
         pendingAudio.length = 0;
         list.forEach(function (el) {
+            // 用户已经操作过，这时候才允许把音乐真正下载下来
+            if (el.preload === 'none') el.preload = 'auto';
             var p = el.play();
             if (p && p.catch) {
                 p.catch(function () { /* 仍然被拒就放弃，不打断游戏 */ });
@@ -66,13 +68,7 @@
     function InnerAudioContext() {
         var self = this;
         var el = new Audio();
-        // 背景音乐有 8.7MB，是首屏体积的大头。线上素材是从服务器拉的，
-        // preload='auto' 会和启动图片抢带宽、把首屏拖到几分钟。
-        // 先不预取，等画面出来后再让它在后台慢慢缓冲。
-        el.preload = 'none';
-        setTimeout(function () {
-            if (!self._destroyed && el.preload === 'none') el.preload = 'auto';
-        }, 12000);
+        el.preload = 'auto';
 
         this._el = el;
         this._volume = 1;
@@ -119,6 +115,11 @@
             get: function () { return el.src; },
             set: function (v) {
                 el.src = v;
+                // 背景音乐有 8.7MB，是首屏体积的大头。线上素材要从 CDN 拉，
+                // 让它参与启动阶段的并发下载会把首屏拖到几十秒。
+                // 这里先不预取，等用户第一次操作（浏览器本来就要求手势才能播）再说。
+                // 音效只有百来 KB，照常即时加载，不影响手感。
+                el.preload = /bossa\.mp3$/i.test(String(v)) ? 'none' : 'auto';
                 try { el.load(); } catch (e) { }
                 if (self._autoplay) self.play();
             }
@@ -127,6 +128,11 @@
 
     InnerAudioContext.prototype.play = function () {
         var el = this._el;
+        // 还没轮到音乐：先记下来，等用户第一次操作再加载播放
+        if (el.preload === 'none') {
+            if (pendingAudio.indexOf(el) === -1) pendingAudio.push(el);
+            return undefined;
+        }
         el.volume = this._volume;
         el.loop = this._loop;
         var p;
