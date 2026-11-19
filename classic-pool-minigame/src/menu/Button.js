@@ -64,9 +64,12 @@ Button.prototype.mouseInsideBorders = function () {
 
 // 统一绘制的圆角按钮底板 + 文字
 // 深色台球桌背景上纯黑底板几乎不可见，所以用「浅色描边 + 深色内芯」的双层矩形
-Button.drawBox = function (text, pos, size, hover, fontsize) {
-    var rim = hover ? "#7fb2ff" : "rgba(255,255,255,0.42)";
-    var bg = hover ? "#2f6fed" : "rgba(10,18,26,0.90)";
+// alpha 可选：叠加在球桌画面上的按钮（如对局中的「菜单」）传小于 1 的值，
+// 让台面透出来；菜单页的按钮铺在背景图上，保持默认 1。
+Button.drawBox = function (text, pos, size, hover, fontsize, alpha) {
+    var a = typeof alpha === "number" ? Math.max(0.15, Math.min(1, alpha)) : 1;
+    var rim = hover ? "#7fb2ff" : "rgba(255,255,255," + (0.20 + 0.22 * a).toFixed(2) + ")";
+    var bg = hover ? "#2f6fed" : "rgba(10,18,26," + (0.90 * a).toFixed(2) + ")";
 
     // 文案过长（例如昵称占满 10 个字）时自动缩字号，避免文字溢出按钮
     var fs = fontsize;

@@ -357,8 +357,9 @@ GameWorld.prototype.draw = function () {
     // 对局中右上角绘制「菜单」按钮（替代原版 ESC 键）
     // 位置由 Game.menuButtonRect 统一算：有系统胶囊时自动让位到胶囊左侧
     var menuRect = Game.menuButtonRect();
+    // 0.55：按钮常驻在台面上，压太实会挡住上右袋口附近的球
     Button.drawBox("菜单", new Vector2(menuRect.x, menuRect.y),
-        new Vector2(menuRect.w, menuRect.h), false, 32);
+        new Vector2(menuRect.w, menuRect.h), false, 32, 0.55);
 
     // 底部状态条：左右是双方昵称芯片，中间是当前状态
     this.drawStatusBar(this.statusInfo());
@@ -493,7 +494,8 @@ GameWorld.prototype.drawStatusBar = function (status) {
     var w = Math.min(avail, textW + 80);
     var x = midLeft + (avail - w) / 2;
 
-    Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.82)", 25);
+    // 底板透明度压到 0.52：这层只是提示，不该把台面上的球和袋口糊住
+    Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.52)", 25);
     Canvas2D.fillRect(x + 16, y + 13, 6, h - 26, status.accent || "#FFFFFF", 3);
     Canvas2D.drawText(status.text, new Vector2(x + w / 2 + 10, y + (h - fs) / 2 - 2),
         Vector2.zero, status.color, "center", "sans-serif", fs + "px");
@@ -507,10 +509,11 @@ GameWorld.prototype.drawNameChip = function (index, x, y, w, h, isTurn) {
 
     if (isTurn) {
         // 先铺一层主色当外框，再压一层深色内芯，等效于 2px 描边（Canvas2D 没有描边圆角矩形）
+        // 内芯只留 0.60 不透明度：压得太实会把球桌边框整条盖掉
         Canvas2D.fillRect(x - 2, y - 2, w + 4, h + 4, accent, 26);
-        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.94)", 24);
+        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.60)", 24);
     } else {
-        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.66)", 25);
+        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.36)", 25);
     }
 
     Canvas2D.fillRect(x + 14, y + 13, 6, h - 26,
@@ -524,7 +527,7 @@ GameWorld.prototype.drawNameChip = function (index, x, y, w, h, isTurn) {
     }
 
     Canvas2D.drawText(name, new Vector2(x + 32, y + (h - fs) / 2 - 2), Vector2.zero,
-        isTurn ? "#FFFFFF" : "rgba(255,255,255,0.60)", "left", "sans-serif", fs + "px");
+        isTurn ? "#FFFFFF" : "rgba(255,255,255,0.74)", "left", "sans-serif", fs + "px");
 };
 
 GameWorld.prototype.reset = function () {

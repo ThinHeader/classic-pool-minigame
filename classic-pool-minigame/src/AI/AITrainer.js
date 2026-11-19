@@ -148,7 +148,7 @@ AITrainer.prototype.drawThinkingOverlay = function () {
     var y = 64;
 
     // 胶囊底 + 左侧色点（用圆角矩形画成圆点）
-    Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.80)", h / 2);
+    Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.52)", h / 2);
     Canvas2D.fillRect(x + 26, y + h / 2 - 5, 10, 10, accent, 5);
     Canvas2D.drawText(label, new Vector2(x + w / 2 + 14, y + (h - fs) / 2 - 2),
         Vector2.zero, "#FFFFFF", "center", "sans-serif", fs + "px");
