@@ -92,6 +92,7 @@ node verify-preview.js    # 端到端验收：渲染 / 点击 / 击球 / HUD / �
 node test-smoke.js        # 冒烟：启动 → 进对局 → 击球 → 暂停 → 继续
 node test-freeball.js     # 自由球摆放规则
 node test-ai.js           # AI 分帧训练不阻塞主线程
+node verify-pages.js      # 线上验收：Pages 加载 / 联机建房 / 进对局 / 击球（需要能访问 GitHub）
 ```
 
 ## 使用前需要替换的三处
