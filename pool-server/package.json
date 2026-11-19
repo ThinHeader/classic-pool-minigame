@@ -1,0 +1,13 @@
+{
+  "name": "pool-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "8 球台球微信小游戏 · 双人对战房间服务",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

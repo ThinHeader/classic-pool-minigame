@@ -1,0 +1,43 @@
+# 依赖
+node_modules/
+
+# 微信开发者工具本地设置（每个人不一样，工具会自动生成）
+classic-pool-minigame/project.private.config.json
+
+# 改代码时的备份文件
+*.bak
+*.bak-*
+
+# 浏览器自动化使用的 profile（含登录态，绝不能提交）
+.chrome-profile/
+
+# 部署脚本与服务器配置（含主机地址，不对外）
+deploy/
+
+# 调试截图与产物
+shots/
+*.log
+
+# 小程序后台备案等一次性自动化脚本（含账号操作，不对外）
+/mp.js
+/mp-nav.js
+/browse.js
+/check-basic.js
+/click-basic-fill.js
+/diag-intro*.js
+/do-domain.js
+/do-region.js
+/fill-basic.js
+/fill-domain.js
+/find-region.js
+/make-avatar.js
+/open-basic-form.js
+/register-auto.js
+/save-domain.js
+/submit-basic*.js
+/tmp-*.js
+
+# 系统与工具
+.DS_Store
+Thumbs.db
+.workbuddy/

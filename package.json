@@ -1,0 +1,25 @@
+{
+  "name": "classic-pool-minigame",
+  "version": "1.0.0",
+  "description": "经典 8 球台球微信小游戏：无 DOM 依赖移植、好友联机对战、人机对战、浏览器可直接预览",
+  "main": "serve.js",
+  "scripts": {
+    "preview": "node serve.js",
+    "server": "node pool-server/index.js",
+    "test": "node verify-preview.js && node test-smoke.js && node test-freeball.js && node test-ai.js"
+  },
+  "keywords": [
+    "wechat",
+    "minigame",
+    "pool",
+    "billiards",
+    "8-ball",
+    "canvas"
+  ],
+  "author": "ThinHeader",
+  "license": "MIT",
+  "dependencies": {
+    "playwright-core": "^1.65.1",
+    "pngjs": "^7.0.0"
+  }
+}

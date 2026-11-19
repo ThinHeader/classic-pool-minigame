@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>经典 8 球台球 · 浏览器预览</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0b1117;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #game {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  #boot {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: #0b1117;
+    color: #d8e6f0;
+    font: 15px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    z-index: 10;
+    transition: opacity .35s ease;
+  }
+  #boot.hide { opacity: 0; pointer-events: none; }
+  #boot .title { font-size: 20px; letter-spacing: 2px; color: #fff; }
+  #boot .bar { width: 220px; height: 3px; background: #1d2a36; border-radius: 2px; overflow: hidden; }
+  #boot .bar i { display: block; height: 100%; width: 0%; background: #38b27a; transition: width .25s ease; }
+  #boot .err { color: #ff8080; max-width: 80vw; text-align: center; white-space: pre-wrap; font-family: Consolas, monospace; font-size: 13px; }
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 8%;
+    transform: translateX(-50%);
+    max-width: 80vw;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, .78);
+    color: #fff;
+    font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    opacity: 0;
+    transition: opacity .2s ease;
+    pointer-events: none;
+    z-index: 20;
+    white-space: pre-wrap;
+    text-align: center;
+  }
+  #toast.show { opacity: 1; }
+  #hint {
+    position: fixed;
+    left: 10px;
+    bottom: 8px;
+    color: rgba(255, 255, 255, .34);
+    font: 12px/1.4 -apple-system, "Microsoft YaHei", sans-serif;
+    pointer-events: none;
+    z-index: 15;
+    opacity: 0;
+    transition: opacity .6s ease;
+  }
+  #hint.show { opacity: 1; }
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="hint">浏览器预览版 · 鼠标模拟触屏<br>按住拖动瞄准，拉远蓄力，松手击球</div>
+  <div id="toast"></div>
+  <div id="boot">
+    <div class="title">经典 8 球台球</div>
+    <div class="bar"><i id="bootbar"></i></div>
+    <div id="bootmsg">正在加载游戏模块…</div>
+  </div>
+
+  <script src="/preview/wx-shim.js"></script>
+  <script src="/preview/boot.js"></script>
+  <script>
+    // 角落提示：短暂显示后自动淡出，避免长期挡画面
+    (function () {
+      var hint = document.getElementById('hint');
+      setTimeout(function () { hint.classList.add('show'); }, 1200);
+      setTimeout(function () { hint.classList.remove('show'); }, 9000);
+    })();
+  </script>
+</body>
+</html>

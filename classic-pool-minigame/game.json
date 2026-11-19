@@ -1,0 +1,10 @@
+{
+  "deviceOrientation": "landscape",
+  "showStatusBar": false,
+  "subpackages": [
+    {
+      "root": "pkgAssets",
+      "name": "pkgAssets"
+    }
+  ]
+}
