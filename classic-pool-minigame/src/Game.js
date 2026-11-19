@@ -201,7 +201,7 @@ Game_Singleton.prototype.handleInput = function () {
     }
 };
 
-// 本局双方显示名：本地玩家用昵称，AI / 对手用明确标识
+// 本局双方显示名：本地玩家用昵称，同机双人用「玩家 2」昵称，AI 用难度标识
 Game_Singleton.prototype.matchNames = function () {
     var me = Nick.get();
 
@@ -209,7 +209,8 @@ Game_Singleton.prototype.matchNames = function () {
         return [me, "对手"];
     }
     if (!AI_ON) {
-        return [me, "玩家 2"];
+        // 同一台手机两个人：第二个名字也存本地，进对局后两侧芯片各显示各的
+        return [me, Nick.getSecond()];
     }
 
     var aiName = "电脑 · " + (AI_LEVEL_NAME || "普通");

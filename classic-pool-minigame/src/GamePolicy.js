@@ -93,23 +93,6 @@ GamePolicy.prototype.colorName = function (index) {
     return "";
 };
 
-// 底部状态条用的一句话：「昵称 · 出杆 · 实心 1-7 · 本盘 2/7」
-GamePolicy.prototype.playerLabel = function (index) {
-    var player = this.players[index];
-    if (!player) {
-        return "";
-    }
-    var parts = [player.name || ("玩家 " + (index + 1)), "出杆"];
-    var group = this.colorName(index);
-    if (group) {
-        parts.push(group);
-    }
-    if (player.color) {
-        parts.push("本盘 " + player.matchScore.value + "/7");
-    }
-    return parts.join(" · ");
-};
-
 // 已落袋的球：按玩家分组画在顶部木框上（左=玩家1，右=玩家2）
 var _pocketedPos = null;
 GamePolicy.prototype.drawPocketedBalls = function () {

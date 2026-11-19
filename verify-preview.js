@@ -185,6 +185,40 @@ function check(name, ok, extra) {
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(SHOTS, 'preview-08-hud.png') });
 
+    console.log('[4.7] 验证昵称本地缓存：改完重开仍在、超长截断');
+    const nickState = await page.evaluate(() => {
+        const N = window.GameGlobal.Nick;
+        const backup = { main: N.get(), second: N.getSecond() };
+
+        N.set('缓存验证甲');
+        N.setSecond('缓存验证乙');
+        // 模拟重启：清掉内存缓存，只能从 storage 读回
+        N._cached = null;
+        N._cached2 = null;
+
+        const result = {
+            main: N.get(),
+            second: N.getSecond(),
+            storedMain: wx.getStorageSync('playerNickname'),
+            storedSecond: wx.getStorageSync('playerNickname2'),
+            clipped: N.set('一二三四五六七八九十十一'),
+            // 12 个 emoji 应截成 10 个完整字符，而不是 10 个 UTF-16 码元（会劈出半个）
+            emoji: N.set('🎱🎱🎱🎱🎱🎱🎱🎱🎱🎱🎱🎱')
+        };
+
+        // 还原现场，避免影响后面的用例
+        N.set(backup.main);
+        N.setSecond(backup.second);
+        return result;
+    });
+    check('昵称重启后从本地缓存读回', nickState.main === '缓存验证甲' && nickState.storedMain === '缓存验证甲',
+        nickState.storedMain || '空');
+    check('玩家 2 昵称同样持久化', nickState.second === '缓存验证乙' && nickState.storedSecond === '缓存验证乙',
+        nickState.storedSecond || '空');
+    check('超长昵称截断到 10 字', nickState.clipped === '一二三四五六七八九十', nickState.clipped);
+    check('emoji 截断不产生半个字符', nickState.emoji === '🎱🎱🎱🎱🎱🎱🎱🎱🎱🎱',
+        nickState.emoji + ' (' + Array.from(nickState.emoji).length + ' 字)');
+
     console.log('[4.6] 验证自由球视觉提示');
     await page.evaluate(() => {
         const p = window.Game.policy;

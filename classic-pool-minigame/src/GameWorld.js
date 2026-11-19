@@ -360,18 +360,15 @@ GameWorld.prototype.draw = function () {
     Button.drawBox("菜单", new Vector2(menuRect.x, menuRect.y),
         new Vector2(menuRect.w, menuRect.h), false, 32);
 
-    // 底部状态条：一行文字说明「谁出杆 / 在干什么」，不再用左右玩家牌
-    var status = this.statusInfo();
-    if (status) {
-        this.drawStatusBar(status.text, status.color, status.accent);
-    }
+    // 底部状态条：左右是双方昵称芯片，中间是当前状态
+    this.drawStatusBar(this.statusInfo());
 };
 
 // 底部状态条要显示什么：谁出杆、自由球怎么放、对手是否在打
+// 名字已经由两侧的昵称芯片常驻显示，这里只留「在干什么」，避免同一行重复两遍名字
 GameWorld.prototype.statusInfo = function () {
     var policy = Game.policy;
     var accent = policy.turnAccent();
-    var name = policy.turnName();
     var score = this.scoreSuffix();
 
     if (this.freeBall.active) {
@@ -389,10 +386,10 @@ GameWorld.prototype.statusInfo = function () {
     var myTurn = !(AI_ON && policy.turn === AI_PLAYER_NUM)
         && !(NET_ON && policy.turn !== NET_SEAT);
 
-    // 球还在滚：告诉玩家是谁打的这一杆
+    // 球还在滚：告诉玩家这一杆已经打出去了
     if (this.ballsMoving()) {
         return {
-            text: name + " 击球中…" + score,
+            text: "击球中…" + score,
             color: "rgba(255,255,255,0.78)",
             accent: accent
         };
@@ -401,7 +398,7 @@ GameWorld.prototype.statusInfo = function () {
     if (myTurn && !policy.turnPlayed) {
         var powerPercent = Math.round(this.stick.power / 75 * 100);
         return {
-            text: policy.playerLabel(policy.turn) + " · 力度 " + powerPercent + "%" + score,
+            text: "力度 " + powerPercent + "%" + this.groupSuffix(policy.turn) + score,
             color: "#FFFFFF",
             accent: accent
         };
@@ -413,10 +410,23 @@ GameWorld.prototype.statusInfo = function () {
     }
 
     return {
-        text: "等待 " + name + " 出杆…" + score,
+        text: "等待对方出杆…" + score,
         color: "rgba(255,255,255,0.82)",
         accent: accent
     };
+};
+
+// 出杆方的组别与进度：「 · 实心 1-7 · 本盘 2/7」，未分组时为空
+GameWorld.prototype.groupSuffix = function (index) {
+    var player = Game.policy.players[index];
+    if (!player) {
+        return "";
+    }
+    var group = Game.policy.colorName(index);
+    if (!group) {
+        return "";
+    }
+    return " · " + group + " · 本盘 " + player.matchScore.value + "/7";
 };
 
 // 赢盘数：台面不再画淡色大字，只有真的打过盘才挂在底部条尾部
@@ -430,25 +440,91 @@ GameWorld.prototype.scoreSuffix = function () {
     return " · 盘分 " + a + ":" + b;
 };
 
-// 底部一条胶囊：左侧色条是出杆方的主色，宽度随文字自适应
-GameWorld.prototype.drawStatusBar = function (text, color, accent) {
-    var fs = 26;
-    var maxW = Game.size.x - 140;
-    var textW = Canvas2D.measureText(text, fs);
-    if (textW > maxW - 96) {
-        fs = Math.max(18, Math.floor(fs * (maxW - 96) / textW));
-        textW = Canvas2D.measureText(text, fs);
+// 底部一条：左右两个昵称芯片常驻（对战双方随时能看到彼此叫什么），
+// 中间胶囊是当前状态（力度 / 击球中 / 自由球提示 / 等待）。
+// 出杆方的芯片用其主色描边高亮，一眼看出轮到谁。
+GameWorld.prototype.drawStatusBar = function (status) {
+    var y = 768;
+    var h = 52;
+    // 和球桌左右边界对齐，芯片不会悬在木框外面
+    var pad = BORDER_SIZE;
+    var gap = 12;
+    var nameFs = 24;
+
+    var policy = Game.policy;
+    var names = [
+        (policy.players[0] && policy.players[0].name) || "玩家 1",
+        (policy.players[1] && policy.players[1].name) || "玩家 2"
+    ];
+
+    // 芯片宽度按名字长度自适应：10 个中文字约 240px，留出竖条和内边距
+    var chipW = [];
+    for (var i = 0; i < 2; i++) {
+        chipW[i] = Math.min(312,
+            Math.max(130, Canvas2D.measureText(names[i], nameFs, "sans-serif") + 64));
     }
 
-    var w = Math.min(maxW, textW + 96);
-    var h = 50;
-    var x = (Game.size.x - w) / 2;
-    var y = 768;
+    var leftX = pad;
+    var rightX = Game.size.x - pad - chipW[1];
+    var midLeft = leftX + chipW[0] + gap;
+    var midRight = rightX - gap;
+
+    var turn = policy.turn;
+    this.drawNameChip(0, leftX, y, chipW[0], h, turn === 0);
+    this.drawNameChip(1, rightX, y, chipW[1], h, turn === 1);
+
+    if (!status || !status.text) {
+        return;
+    }
+
+    // 中间可用宽度：两个芯片吃掉多少就剩多少，太窄就不画状态，只留名字
+    var avail = midRight - midLeft;
+    if (avail < 180) {
+        return;
+    }
+
+    var fs = 26;
+    var maxTextW = avail - 80;
+    while (fs > 16 && Canvas2D.measureText(status.text, fs, "sans-serif") > maxTextW) {
+        fs -= 2;
+    }
+
+    var textW = Canvas2D.measureText(status.text, fs, "sans-serif");
+    var w = Math.min(avail, textW + 80);
+    var x = midLeft + (avail - w) / 2;
 
     Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.82)", 25);
-    Canvas2D.fillRect(x + 16, y + 13, 6, h - 26, accent || "#FFFFFF", 3);
-    Canvas2D.drawText(text, new Vector2(x + w / 2 + 10, y + (h - fs) / 2 - 2),
-        Vector2.zero, color, "center", "sans-serif", fs + "px");
+    Canvas2D.fillRect(x + 16, y + 13, 6, h - 26, status.accent || "#FFFFFF", 3);
+    Canvas2D.drawText(status.text, new Vector2(x + w / 2 + 10, y + (h - fs) / 2 - 2),
+        Vector2.zero, status.color, "center", "sans-serif", fs + "px");
+};
+
+// 单个昵称芯片：出杆方 = 主色描边 + 实底 + 白字；等待方 = 暗底 + 降低透明度
+GameWorld.prototype.drawNameChip = function (index, x, y, w, h, isTurn) {
+    var player = Game.policy.players[index] || {};
+    var accent = player.accent || "#FFFFFF";
+    var name = player.name || ("玩家 " + (index + 1));
+
+    if (isTurn) {
+        // 先铺一层主色当外框，再压一层深色内芯，等效于 2px 描边（Canvas2D 没有描边圆角矩形）
+        Canvas2D.fillRect(x - 2, y - 2, w + 4, h + 4, accent, 26);
+        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.94)", 24);
+    } else {
+        Canvas2D.fillRect(x, y, w, h, "rgba(6,16,12,0.66)", 25);
+    }
+
+    Canvas2D.fillRect(x + 14, y + 13, 6, h - 26,
+        isTurn ? accent : "rgba(255,255,255,0.28)", 3);
+
+    // 名字过长（10 个字）时缩字号，保证完整显示而不截断
+    var fs = 24;
+    var maxW = w - 48;
+    while (fs > 14 && Canvas2D.measureText(name, fs, "sans-serif") > maxW) {
+        fs -= 1;
+    }
+
+    Canvas2D.drawText(name, new Vector2(x + 32, y + (h - fs) / 2 - 2), Vector2.zero,
+        isTurn ? "#FFFFFF" : "rgba(255,255,255,0.60)", "left", "sans-serif", fs + "px");
 };
 
 GameWorld.prototype.reset = function () {

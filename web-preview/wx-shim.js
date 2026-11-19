@@ -276,6 +276,59 @@
         return socket;
     }
 
+    // ---------- 键盘（模拟 wx.showKeyboard）----------
+    // 小游戏里键盘是系统浮层，这里用页面里的真实 input 顶替：
+    // 输入即 onKeyboardInput，回车 = onKeyboardConfirm，失焦 = onKeyboardComplete。
+    // 这样浏览器预览也能真正改昵称，自动化验收不用再绕过输入。
+    function kbHandlers() {
+        if (!window.__wxKeyboardHandlers) {
+            window.__wxKeyboardHandlers = { input: [], confirm: [], complete: [] };
+        }
+        return window.__wxKeyboardHandlers;
+    }
+
+    function kbFire(type, value) {
+        var list = kbHandlers()[type] || [];
+        for (var i = 0; i < list.length; i++) {
+            try { list[i]({ value: value }); } catch (e) { }
+        }
+    }
+
+    function kbInput() {
+        if (window.__wxKeyboardInput) {
+            return window.__wxKeyboardInput;
+        }
+
+        var el = document.createElement('input');
+        el.type = 'text';
+        el.setAttribute('data-wx-keyboard', '1');
+        el.style.cssText = [
+            'position:fixed', 'left:50%', 'bottom:16px', 'transform:translateX(-50%)',
+            'width:64%', 'max-width:440px', 'padding:10px 14px', 'font-size:16px',
+            'font-family:inherit', 'border-radius:10px', 'border:2px solid #4AA3FF',
+            'background:#101B26', 'color:#fff', 'outline:none', 'z-index:99999',
+            'box-shadow:0 8px 28px rgba(0,0,0,0.55)'
+        ].join(';');
+
+        el.addEventListener('input', function () {
+            kbFire('input', el.value);
+        });
+        el.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                kbFire('confirm', el.value);
+                el.blur();
+            }
+        });
+        el.addEventListener('blur', function () {
+            kbFire('complete', el.value);
+        });
+
+        document.body.appendChild(el);
+        window.__wxKeyboardInput = el;
+        return el;
+    }
+
     // ---------- 汇总 ----------
     var wx = {
         createCanvas: function () {
@@ -372,6 +425,28 @@
         removeStorageSync: function (key) {
             try { localStorage.removeItem('wx_' + key); } catch (e) { }
         },
+        showKeyboard: function (opt) {
+            opt = opt || {};
+            var el = kbInput();
+            el.maxLength = opt.maxLength || 140;
+            el.value = opt.defaultValue === undefined || opt.defaultValue === null ? '' : String(opt.defaultValue);
+            // 先同步一次当前值，避免面板打开后输入框是空的而游戏里还是旧名字
+            kbFire('input', el.value);
+            setTimeout(function () {
+                try { el.focus(); el.select(); } catch (e) { }
+                if (opt.success) opt.success({});
+            }, 0);
+        },
+        hideKeyboard: function (opt) {
+            var el = window.__wxKeyboardInput;
+            if (el) {
+                try { el.blur(); } catch (e) { }
+            }
+            if (opt && opt.success) setTimeout(function () { opt.success({}); }, 0);
+        },
+        onKeyboardInput: function (cb) { if (typeof cb === 'function') kbHandlers().input.push(cb); },
+        onKeyboardConfirm: function (cb) { if (typeof cb === 'function') kbHandlers().confirm.push(cb); },
+        onKeyboardComplete: function (cb) { if (typeof cb === 'function') kbHandlers().complete.push(cb); },
         getMenuButtonBoundingClientRect: function () {
             return { top: 0, left: window.innerWidth - 100, width: 90, height: 32, bottom: 32, right: window.innerWidth };
         },

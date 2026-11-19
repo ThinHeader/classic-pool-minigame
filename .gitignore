@@ -41,3 +41,15 @@ shots/
 .DS_Store
 Thumbs.db
 .workbuddy/
+
+# 原版 H5 游戏源码（他人版权，仅本地参考，不发布）
+pool-src/
+
+# 联机调试/一次性脚本与素材
+/shots-ai-thinking.js
+/test-net.js
+/test-online.js
+/test-preview-online.js
+/wait-scan.js
+/assets-avatar-8ball.png
+/开源小游戏推荐榜单.html
