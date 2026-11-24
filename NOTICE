@@ -1,0 +1,16 @@
+NOTICE — 补充许可声明 / Additional License Notice
+================================================================
+
+本项目基于 henshmi/Classic-Pool-Game（MIT License，Chen Shmilovich 版权）移植。
+上游原版代码与资源继续遵循仓库根目录的 MIT LICENSE，MIT 允许商业使用。
+
+以下由 ThinHeader 新增的部分采用 CC BY-NC-SA 4.0（署名-非商业性使用-相同方式共享）：
+  - 微信小游戏移植层：去除浏览器 DOM、界面汉化、广告接入
+  - 好友联机对战与标准 8 球外观实现
+  - build-pages.js 预览构建管线与本项目文档
+
+这些新增部分可以署名分享、修改，但**禁止商业使用**，衍生作品须沿用相同协议。
+完整协议见：https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+无论使用哪部分，请保留游戏内 © 2018 Chen Shmilovich 署名，以及 BGM 的 CC BY 3.0 署名。
+上游 MIT 代码本身不受上述非商用条款约束——无法单方面改变 MIT 授权，这是法律事实。
