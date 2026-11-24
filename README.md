@@ -110,6 +110,6 @@ node verify-pages.js      # 线上验收：Pages 加载 / 联机建房 / 进对�
 
 ## 许可
 
-MIT。原版由 [Chen Shmilovich](https://github.com/henshmi) 开发，本移植同样以 MIT 发布，详见 [LICENSE](LICENSE)。
+上游原版为 MIT（[Chen Shmilovich](https://github.com/henshmi)），详见 [LICENSE](LICENSE)。本移植新增的汉化、广告、好友联机与标准 8 球外观部分采用 CC BY-NC-SA 4.0，**禁止商业使用**，详见 [NOTICE](NOTICE)。
 
 游戏内 `© 2018 Chen Shmilovich` 署名与 BGM 的 CC BY 3.0 署名请一并保留——这是原作者的许可条件。
